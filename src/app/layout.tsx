@@ -1,11 +1,30 @@
 import type { Metadata } from "next";
+import { Cairo, Amiri } from "next/font/google"; // استيراد الخطوط المناسبة
 import "./globals.css";
-import BottomDock from "@/components/layout/BottomDock";
+import Header from "@/components/layout/Header"; // سننشئه لاحقاً
+import Footer from "@/components/layout/Footer"; // سننشئه لاحقاً
+import { AuthProvider } from "@/components/providers/auth-provider";
+import { CartProvider } from "@/components/providers/cart-provider";
 
-// يمكنك استبدال هذا الخط بخط "Cairo" أو "Tajawal" من Google Fonts لاحقاً
+// خط للنصوص العامة والواجهة UI
+const cairo = Cairo({
+  subsets: ["arabic"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-cairo",
+  display: "swap",
+});
+
+// خط للعناوين والكتب (تراثي)
+const amiri = Amiri({
+  subsets: ["arabic"],
+  weight: ["400", "700"],
+  variable: "--font-amiri",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "الأطلس التربوي",
-  description: "الدليل الأطلسي للتوجيه والإرشاد الأسري",
+  title: "موسوعة الأسرة | الدليل الشامل",
+  description: "المرجع الأول للأسرة المسلمة - كتب واستشارات تربوية",
 };
 
 export default function RootLayout({
@@ -15,18 +34,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl">
-      <body className="antialiased min-h-screen relative overflow-hidden bg-[#Fdfbf6]">
-        {/* خلفية عامة مزخرفة (اختياري) - يمكن إزالتها إذا كانت موجودة في globals.css */}
-        <div className="absolute inset-0 z-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/aged-paper.png')]"></div>
+      <body
+        className={`${cairo.variable} ${amiri.variable} font-sans antialiased bg-background text-foreground min-h-screen flex flex-col`}
+      >
+        <AuthProvider>
+          <CartProvider>
+            {/* 1. Web Header (Sticky) */}
+            <Header />
 
-        {/* حاوية المحتوى الرئيسية - Main Scrollable Area */}
-        {/* قمنا بترك مساحة للشريط العلوي والسفلي */}
-        <main className="relative z-10 h-screen overflow-y-auto pb-32 pt-24 px-4 sm:px-6">
-          <div className="max-w-md mx-auto h-full">{children}</div>
-        </main>
+            {/* 2. Main Content (Flexible Height) */}
+            <main className="flex-1 w-full">{children}</main>
 
-        {/* القائمة السفلية الثابتة */}
-        <BottomDock />
+            {/* 3. Footer */}
+            <Footer />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,0 +1,1 @@
+// Cart icon component

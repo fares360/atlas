@@ -1,3 +1,87 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background: Paper/Cream Texture */
+    --background: 36 33% 98%; /* #FDFBF7 */
+    --foreground: 25 25% 20%; /* Dark Brown Text */
+
+    /* Card: White with slight warmth */
+    --card: 40 20% 99%;
+    --card-foreground: 25 25% 20%;
+
+    /* Popover */
+    --popover: 36 33% 98%;
+    --popover-foreground: 25 25% 20%;
+
+    /* Primary: Islamic Teal (Action Buttons) */
+    --primary: 188 42% 29%; /* #2A5B68 */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Muted Gold (Highlights/Badges) */
+    --secondary: 44 65% 52%; /* #D4AF37 */
+    --secondary-foreground: 25 25% 15%;
+
+    /* Muted: Lighter Taupe for backgrounds */
+    --muted: 30 15% 90%;
+    --muted-foreground: 25 10% 45%;
+
+    /* Accent: Very light teal for hovers */
+    --accent: 188 30% 94%;
+    --accent-foreground: 188 42% 29%;
+
+    /* Destructive */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Borders & Inputs */
+    --border: 30 15% 85%;
+    --input: 30 15% 85%;
+    --ring: 188 42% 29%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Dark Mode (Midnight/Deep Blue Theme) - Optional setup */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 188 42% 29%;
+    --primary-foreground: 222 47.4% 11.2%;
+    --secondary: 44 65% 52%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* تحسين الخطوط العربية */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif tracking-wide;
+  }
+}
