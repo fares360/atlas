@@ -1,0 +1,19 @@
+{
+  "output": {
+    "filePath": "repomix-output.xml",
+    "style": "xml"
+  },
+  "include": [
+    "src/**/*",
+    "app/**/*",
+    "components/**/*",
+    "public/**/*",
+    "styles/**/*",
+    "lib/**/*",
+    "utils/**/*"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "customPatterns": ["node_modules", ".git"]
+  }
+}

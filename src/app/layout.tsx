@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Cairo, Amiri } from "next/font/google"; // استيراد الخطوط المناسبة
 import "./globals.css";
-import Header from "@/components/layout/Header"; // سننشئه لاحقاً
-import Footer from "@/components/layout/Footer"; // سننشئه لاحقاً
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { CartProvider } from "@/components/providers/cart-provider";
 

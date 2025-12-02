@@ -5,13 +5,12 @@ import {
   PlayCircle,
   ShieldCheck,
   Calendar,
-  ArrowRight,
   Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import AddToCartBtn from "@/components/ui/add-to-cart-btn";
 
-// محاكاة لجلب البيانات (لاحقاً سنربطها بـ Supabase)
-// في الحقيقة، هذه الدالة ستكون async وتجلب البيانات من قاعدة البيانات
+// محاكاة لجلب البيانات
 const getBookDetails = (id: string) => {
   return {
     id,
@@ -30,19 +29,17 @@ const getBookDetails = (id: string) => {
       "خرائط ذهنية للمفاهيم المعقدة",
       "حقيبة أدوات المربي (نماذج عمل)",
     ],
-    color: "bg-[#2A5B68]", // لون مميز للكتاب
+    color: "bg-[#2A5B68]",
   };
 };
 
 export default async function BookPage({ params }: { params: { id: string } }) {
-  // انتظر حتى يتم حل الـ params (مهم جداً في Next.js 15+ أو 14 الحديث)
-  // ملاحظة: إذا كنت تستخدم Next.js 14 قد لا تحتاج await حسب الإعدادات، لكنها آمنة
   const resolvedParams = await params;
   const book = getBookDetails(resolvedParams.id);
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] pb-20">
-      {/* 1. Breadcrumb: شريط التنقل العلوي */}
+      {/* 1. Breadcrumb */}
       <div className="container py-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link href="/" className="hover:text-[#2A5B68] transition-colors">
@@ -55,11 +52,9 @@ export default async function BookPage({ params }: { params: { id: string } }) {
 
       <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* 2. Right Column: صور وتفاصيل الكتاب (8 أعمدة) */}
+          {/* 2. Right Column */}
           <div className="lg:col-span-8 space-y-8">
-            {/* غلاف الكتاب وتفاصيله الأساسية */}
             <div className="bg-white p-8 rounded-2xl border border-[#E6E2D3] shadow-sm flex flex-col md:flex-row gap-8">
-              {/* صورة الغلاف */}
               <div
                 className={cn(
                   "w-full md:w-48 h-64 rounded-lg shadow-inner flex items-center justify-center shrink-0",
@@ -69,7 +64,6 @@ export default async function BookPage({ params }: { params: { id: string } }) {
                 <BookOpen className="w-20 h-20 text-white/90" />
               </div>
 
-              {/* النصوص */}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="bg-[#D4AF37]/10 text-[#8C6B28] px-3 py-1 rounded-full text-xs font-bold border border-[#D4AF37]/20">
@@ -100,7 +94,6 @@ export default async function BookPage({ params }: { params: { id: string } }) {
               </div>
             </div>
 
-            {/* الوصف والمحتوى */}
             <div className="prose prose-lg max-w-none text-muted-foreground leading-loose">
               <h3 className="text-2xl font-bold font-serif text-[#3E2723] mb-4 flex items-center gap-2">
                 <Star className="w-6 h-6 text-[#D4AF37] fill-current" />
@@ -126,7 +119,7 @@ export default async function BookPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* 3. Left Column: كارت الشراء (4 أعمدة) - Sticky */}
+          {/* 3. Left Column: Sticky Cart Card */}
           <div className="lg:col-span-4">
             <div className="sticky top-24 space-y-6">
               {/* كارت السعر والشراء */}
@@ -144,10 +137,15 @@ export default async function BookPage({ params }: { params: { id: string } }) {
                 </div>
 
                 <div className="space-y-3">
-                  <button className="w-full bg-[#2A5B68] hover:bg-[#1f4a56] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md hover:shadow-[#2A5B68]/20">
-                    <span>إضافة للسلة</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
+                  {/* ✅ هنا وضعنا الزر المبرمج فقط */}
+                  <AddToCartBtn
+                    item={{
+                      id: book.id,
+                      title: book.title,
+                      price: book.price,
+                      type: "book",
+                    }}
+                  />
                   <p className="text-xs text-center text-muted-foreground mt-2">
                     دفع آمن 100% • استلام فوري
                   </p>
@@ -157,7 +155,6 @@ export default async function BookPage({ params }: { params: { id: string } }) {
               {/* كارت حجز الاستشارة (Upsell) */}
               <div className="bg-[#3E2723] p-6 rounded-2xl text-white shadow-lg relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2"></div>
-
                 <h3 className="text-lg font-bold font-serif mb-2 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-[#D4AF37]" />
                   تحتاج مساعدة خاصة؟
@@ -166,7 +163,6 @@ export default async function BookPage({ params }: { params: { id: string } }) {
                   يمكنك حجز جلسة استشارية خاصة مدتها 45 دقيقة لمناقشة محتوى هذا
                   الكتاب مع خبير تربوي.
                 </p>
-
                 <button className="w-full bg-[#D4AF37] hover:bg-[#b8962e] text-[#3E2723] font-bold py-3 rounded-lg text-sm transition-colors">
                   حجز استشارة (+250 ج.م)
                 </button>
