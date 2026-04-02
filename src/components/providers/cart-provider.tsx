@@ -6,14 +6,14 @@ import {
   useState,
   useEffect,
   ReactNode,
+  useCallback, // 1️⃣ استورد دي ضروري
 } from "react";
 
-// 1. تعريف شكل المنتج في السلة
 export interface CartItem {
   id: string | number;
   title: string;
   price: number;
-  type: "book" | "consultation"; // لتمييز الكتب عن الاستشارات
+  type: "book" | "consultation";
 }
 
 interface CartContextType {
@@ -31,7 +31,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  // استرجاع السلة من الذاكرة عند فتح الموقع
   useEffect(() => {
     const savedCart = localStorage.getItem("atlas-cart");
     if (savedCart) {
@@ -44,29 +43,34 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setMounted(true);
   }, []);
 
-  // حفظ السلة عند أي تغيير
   useEffect(() => {
     if (mounted) {
       localStorage.setItem("atlas-cart", JSON.stringify(items));
     }
   }, [items, mounted]);
 
-  // إضافة منتج (مع منع التكرار للكتب لأنها منتجات رقمية)
-  const addItem = (newItem: CartItem) => {
+  // 2️⃣ نستخدم useCallback مع addItem
+  const addItem = useCallback((newItem: CartItem) => {
     setItems((currentItems) => {
       const exists = currentItems.find((item) => item.id === newItem.id);
-      if (exists) return currentItems; // لو موجود مسبقاً لا تضفه مرة أخرى
+      if (exists) return currentItems;
       return [...currentItems, newItem];
     });
-  };
+  }, []); // Array فاضي عشان الدالة متتغيرش أبداً
 
-  const removeItem = (id: string | number) => {
+  // 3️⃣ نستخدم useCallback مع removeItem
+  const removeItem = useCallback((id: string | number) => {
     setItems((currentItems) => currentItems.filter((item) => item.id !== id));
-  };
+  }, []);
 
-  const clearCart = () => setItems([]);
+  // 4️⃣ أهم واحدة: نستخدم useCallback مع clearCart
+  const clearCart = useCallback(() => {
+    setItems([]);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("atlas-cart");
+    }
+  }, []);
 
-  // حساب الإجماليات
   const totalAmount = items.reduce((sum, item) => sum + item.price, 0);
 
   return (

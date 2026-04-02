@@ -1,257 +1,235 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { InlineWidget } from "react-calendly";
+import { createClient } from "@/lib/supabase/server";
+import BookingButton from "@/components/consultations/booking-button";
 import {
   Users,
   HeartHandshake,
   BrainCircuit,
-  CalendarCheck,
   Clock,
   CheckCircle2,
+  ShieldCheck,
+  ArrowDown,
   Star,
-  X,
+  AlertCircle,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// بيانات الخدمات
-const services = [
-  {
-    id: "marital",
-    title: "استشارات زوجية",
-    description: "جلسات خاصة لحل الخلافات الزوجية وتحقيق التوافق الأسري.",
-    icon: HeartHandshake,
-    price: "450 ج.م",
-    duration: "60 دقيقة",
-    color: "bg-[#D4AF37]",
-    features: ["جلسة سرية تامة", "خطة عمل عملية", "متابعة بعد أسبوع"],
-    calendlyUrl: "https://calendly.com/fareshaitham-fh3/30min", // رابط تجريبي
-  },
-  {
-    id: "educational",
-    title: "استشارات تربوية",
-    description: "توجيه للآباء والأمهات للتعامل مع مشكلات الأبناء.",
-    icon: Users,
-    price: "400 ج.م",
-    duration: "45 دقيقة",
-    color: "bg-[#2A5B68]",
-    features: ["تحليل سلوك الطفل", "أدوات تربوية مساعدة", "تعديل سلوك"],
-    calendlyUrl: "https://calendly.com/fareshaitham-fh3/30min", // رابط تجريبي
-  },
-  {
-    id: "psychological",
-    title: "دعم نفسي ومقاييس",
-    description: "جلسات للدعم النفسي وتطبيق مقاييس الذكاء والميول.",
-    icon: BrainCircuit,
-    price: "500 ج.م",
-    duration: "60 دقيقة",
-    color: "bg-[#3E2723]",
-    features: ["تطبيق اختبارات معتمدة", "تقرير تفصيلي", "خطة علاجية"],
-    calendlyUrl: "https://calendly.com/fareshaitham-fh3/30min", // رابط تجريبي
-  },
-];
+// هذا السطر يضمن تحديث الصفحة فوراً عند تعديل الأسعار في الأدمن
+export const dynamic = "force-dynamic";
 
-export default function ConsultationsPage() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedUrl, setSelectedUrl] = useState("");
-  const [mounted, setMounted] = useState(false);
+// دالة مساعدة لتحديد الشكل (الأيقونة واللون) بناءً على عنوان الاستشارة
+const getServiceStyle = (title: string) => {
+  if (title.includes("زوجية")) {
+    return {
+      icon: HeartHandshake,
+      themeColor: "#D4AF37", // ذهبي
+      bgClass: "bg-[#D4AF37]/5",
+      borderClass: "border-[#D4AF37]/20",
+    };
+  } else if (title.includes("تربوية") || title.includes("أطفال")) {
+    return {
+      icon: Users,
+      themeColor: "#2A5B68", // فيروزي
+      bgClass: "bg-[#2A5B68]/5",
+      borderClass: "border-[#2A5B68]/20",
+    };
+  } else {
+    return {
+      icon: BrainCircuit, // الافتراضي (للنفسي وغيره)
+      themeColor: "#3E2723", // بني
+      bgClass: "bg-[#3E2723]/5",
+      borderClass: "border-[#3E2723]/20",
+    };
+  }
+};
 
-  // الحل السحري للإيرور: نقوم بتحويل المكون لـ any لإرضاء TypeScript
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const CalendlyWidget = InlineWidget as any;
+export default async function ConsultationsPage() {
+  const supabase = await createClient();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleBooking = (url: string) => {
-    setSelectedUrl(url);
-    setIsOpen(true);
-    document.body.style.overflow = "hidden";
-  };
-
-  const closeModal = () => {
-    setIsOpen(false);
-    document.body.style.overflow = "unset";
-  };
+  // 1. جلب البيانات من قاعدة البيانات
+  const { data: consultations } = await supabase
+    .from("consultation_types")
+    .select("*")
+    .order("price", { ascending: true });
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] pb-20 relative">
-      {/* --- Custom Professional Modal --- */}
-      {mounted && isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-          <div
-            className="absolute inset-0 bg-[#3E2723]/60 backdrop-blur-sm"
-            onClick={closeModal}
-          ></div>
+    <div className="min-h-screen bg-[#FDFBF7] pb-20 relative font-sans" dir="rtl">
+      
+      {/* ================= 1. Hero Section ================= */}
+      <section className="relative pt-20 pb-24 overflow-hidden border-b border-[#D4AF37]/10">
+        <div className="absolute inset-0 bg-[#EEEBE2] opacity-50"></div>
+        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none bg-[radial-gradient(#3E2723_1px,transparent_1px)] [background-size:24px_24px]"></div>
 
-          <div className="relative w-full max-w-4xl bg-[#FDFBF7] rounded-3xl shadow-2xl overflow-hidden border-2 border-[#D4AF37] animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-[#E6E2D3]">
-              <div className="flex items-center gap-2">
-                <CalendarCheck className="https://calendly.com/fareshaitham-fh3/30min" />
-                <span className="font-bold font-serif text-[#3E2723]">
-                  حجز موعد استشارة
-                </span>
-              </div>
-              <button
-                onClick={closeModal}
-                className="p-2 rounded-full hover:bg-slate-100 transition-colors text-muted-foreground hover:text-red-500"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto bg-white custom-scrollbar">
-              {/* استخدمنا المتغير الجديد هنا بدلاً من InlineWidget مباشرة */}
-              <CalendlyWidget
-                url={selectedUrl}
-                styles={{
-                  height: "650px",
-                  width: "100%",
-                  minWidth: "320px",
-                }}
-                pageSettings={{
-                  backgroundColor: "ffffff",
-                  hideEventTypeDetails: false,
-                  hideLandingPageDetails: false,
-                  primaryColor: "2A5B68",
-                  textColor: "3E2723",
-                }}
-              />
-            </div>
-
-            <div className="bg-[#F9F7F0] px-6 py-3 text-center text-xs text-muted-foreground border-t border-[#E6E2D3]">
-              جميع المواعيد بتوقيت القاهرة المحلي
-            </div>
+        <div className="container relative z-10 text-center max-w-3xl mx-auto px-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#D4AF37]/30 text-[#3E2723] text-sm font-bold mb-6 shadow-sm">
+            <ShieldCheck className="w-4 h-4 text-[#D4AF37]" />
+            <span>مساحة آمنة وسرية تامة</span>
           </div>
-        </div>
-      )}
 
-      {/* ... باقي الكود كما هو بدون تغيير ... */}
-      {/* تأكد من إبقاء باقي أقسام الصفحة (Hero, Services Grid, How it works) كما هي */}
-      <section className="bg-[#3E2723] text-white py-20 relative overflow-hidden">
-        {/* ... نفس الكود السابق ... */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="container relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold font-serif mb-6">
-            مساحة آمنة.. لمستقبل أسري أفضل
+          <h1 className="text-4xl md:text-6xl font-bold font-serif text-[#3E2723] mb-6 leading-tight">
+            استشر{" "}
+            <span className="text-[#2A5B68] relative inline-block">
+              الخبراء
+              <svg className="absolute w-full h-3 -bottom-1 left-0 text-[#D4AF37] opacity-40" viewBox="0 0 100 10" preserveAspectRatio="none">
+                <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="3" fill="none" />
+              </svg>
+            </span>{" "}
+            لبناء مستقبل أسري أفضل
           </h1>
-          <p className="text-lg text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed">
-            نقدم لك استشارات متخصصة على يد نخبة من الخبراء التربويين والنفسيين.
+
+          <p className="text-lg text-muted-foreground leading-relaxed mb-10">
+            نقدم لك جلسات استشارية متخصصة تجمع بين التأصيل العلمي والخبرة العملية، 
+            لتجاوز العقبات بثقة وبناء حياة مستقرة.
           </p>
-          <div className="flex justify-center gap-8 text-sm font-medium text-[#D4AF37]">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5" />
+
+          <div className="flex justify-center gap-6 text-sm font-medium text-[#5C6B73]">
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-[#E6E2D3] shadow-sm">
+              <CheckCircle2 className="w-4 h-4 text-[#2A5B68]" />
               <span>خبراء معتمدون</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5" />
-              <span>سرية تامة</span>
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-[#E6E2D3] shadow-sm">
+              <CheckCircle2 className="w-4 h-4 text-[#2A5B68]" />
+              <span>متاح أونلاين</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="container -mt-10 relative z-20">
+      {/* ================= 2. Services Cards (Dynamic from DB) ================= */}
+      <section className="container max-w-6xl mx-auto -mt-12 relative z-20 px-4">
+        {(!consultations || consultations.length === 0) ? (
+            <div className="flex flex-col items-center justify-center p-12 bg-white rounded-[2rem] border border-dashed border-[#E6E2D3] text-center shadow-sm">
+                <AlertCircle className="w-12 h-12 text-[#D4AF37] mb-4" />
+                <h3 className="text-xl font-bold text-[#3E2723]">لا توجد استشارات متاحة حالياً</h3>
+                <p className="text-muted-foreground mt-2">يرجى العودة لاحقاً أو التواصل مع الإدارة.</p>
+            </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {services.map((service) => (
-            <div
-              key={service.id}
-              className="bg-white rounded-2xl shadow-xl border border-[#E6E2D3] overflow-hidden group hover:-translate-y-2 transition-transform duration-300"
-            >
+          {consultations.map((service) => {
+            // تحديد الستايل بناءً على الاسم
+            const style = getServiceStyle(service.title);
+            
+            // استخراج الوصف والمميزات من الميتاداتا
+            // @ts-ignore
+            const description = service.metadata?.description || "جلسة استشارية متخصصة.";
+            
+            // ✅ تصحيح: التأكد من أن المميزات مصفوفة لتجنب الأخطاء
+            // @ts-ignore
+            let features = service.metadata?.features;
+            if (!Array.isArray(features)) {
+                features = ["سرية تامة", "خطة علاجية", "متابعة دورية"]; // Fallback
+            }
+
+            return (
               <div
-                className={`${service.color} p-6 text-white flex justify-between items-start`}
+                key={service.id}
+                className={cn(
+                  "group relative bg-white rounded-[2rem] border overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl flex flex-col",
+                  style.borderClass
+                )}
               >
-                <service.icon className="w-10 h-10 opacity-90" />
-                <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm">
-                  متاح أونلاين
-                </span>
-              </div>
+                {/* شريط ملون علوي */}
+                <div className="h-2 w-full" style={{ backgroundColor: style.themeColor }}></div>
 
-              <div className="p-6">
-                <h3 className="text-2xl font-bold font-serif text-[#3E2723] mb-3">
-                  {service.title}
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-6 min-h-[60px]">
-                  {service.description}
-                </p>
+                <div className="p-8 flex-1 flex flex-col">
+                  {/* الأيقونة */}
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110"
+                    style={{
+                      backgroundColor: `${style.themeColor}15`,
+                      color: style.themeColor,
+                    }}
+                  >
+                    <style.icon className="w-7 h-7" strokeWidth={1.5} />
+                  </div>
 
-                <ul className="space-y-3 mb-8">
-                  {service.features.map((feat, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-center gap-2 text-sm text-[#5C6B73]"
-                    >
-                      <Star className="w-4 h-4 text-[#D4AF37] fill-current" />
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
+                  {/* العنوان */}
+                  <h3 className="text-2xl font-bold font-serif text-[#3E2723] mb-3 group-hover:text-[#2A5B68] transition-colors">
+                    {service.title}
+                  </h3>
 
-                <div className="border-t border-dashed pt-4 mb-6">
-                  <div className="flex justify-between items-center text-sm">
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      <span>{service.duration}</span>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-6 min-h-[60px]">
+                    {description}
+                  </p>
+
+                  {/* ✅ المميزات: الآن تعرض البيانات الحقيقية */}
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {features.map((feature: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-3 text-sm text-[#5C6B73]">
+                            <Star className="w-4 h-4 text-[#D4AF37] fill-[#D4AF37] mt-0.5 shrink-0" />
+                            <span>{feature}</span>
+                        </li>
+                    ))}
+                  </ul>
+
+                  {/* السعر والمدة */}
+                  <div className={cn("rounded-xl p-4 mb-6 flex justify-between items-center", style.bgClass)}>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-muted-foreground mb-1">المدة</span>
+                      <div className="flex items-center gap-1 font-bold text-[#3E2723]">
+                        <Clock className="w-3.5 h-3.5 opacity-70" />
+                        {service.duration || "--"}
+                      </div>
                     </div>
-                    <div className="font-bold text-xl text-[#2A5B68]">
-                      {service.price}
+                    <div className="text-left">
+                      <span className="text-xs text-muted-foreground mb-1">الاستثمار</span>
+                      <div className="text-xl font-bold" style={{ color: style.themeColor }}>
+                        {service.price} <span className="text-xs text-black/60">ج.م</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <button
-                  onClick={() => handleBooking(service.calendlyUrl)}
-                  className="w-full py-3 rounded-lg border-2 border-[#3E2723] text-[#3E2723] font-bold hover:bg-[#3E2723] hover:text-white transition-all flex items-center justify-center gap-2"
-                >
-                  <CalendarCheck className="w-5 h-5" />
-                  حجز موعد الآن
-                </button>
+                  {/* زر الحجز (Client Component) */}
+                  <BookingButton 
+                    service={{
+                        title: service.title,
+                        price: service.price,
+                        duration: service.duration || ""
+                    }} 
+                    themeColor={style.themeColor} 
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+        )}
       </section>
 
-      <section className="container py-20 mt-10">
-        <div className="text-center mb-12">
+      {/* ================= 3. How it Works ================= */}
+      <section className="container max-w-5xl mx-auto py-24 px-4">
+        <div className="text-center mb-16">
+          <span className="text-[#D4AF37] font-bold text-sm tracking-wide uppercase mb-2 block">
+            خطوات الحجز
+          </span>
           <h2 className="text-3xl font-bold font-serif text-[#3E2723]">
-            كيف تحجز استشارتك؟
+            ابدأ رحلة الوعي الآن
           </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-          {[
-            {
-              step: "1",
-              title: "اختر نوع الاستشارة",
-              desc: "حدد المجال الذي تحتاج فيه للمساعدة",
-            },
-            {
-              step: "2",
-              title: "اختر الموعد المناسب",
-              desc: "جدول مواعيد مرن يناسب وقتك",
-            },
-            {
-              step: "3",
-              title: "أكمل الدفع",
-              desc: "دفع آمن عبر البطاقة أو المحفظة",
-            },
-            {
-              step: "4",
-              title: "ابدأ الجلسة",
-              desc: "رابط مباشر عبر Zoom أو Google Meet",
-            },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="bg-white p-6 rounded-xl border border-[#E6E2D3]"
-            >
-              <div className="w-10 h-10 bg-[#F9F7F0] rounded-full flex items-center justify-center text-[#2A5B68] font-bold text-xl mx-auto mb-4 border border-[#2A5B68]/20">
-                {item.step}
+
+        <div className="relative">
+          <div className="hidden md:block absolute top-12 left-0 right-0 h-0.5 border-t-2 border-dashed border-[#E6E2D3] z-0"></div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+            {[
+              { title: "اختر الخدمة", desc: "حدد نوع الاستشارة المناسبة" },
+              { title: "تواصل معنا", desc: "اضغط زر الحجز للانتقال للواتساب" },
+              { title: "تنسيق الموعد", desc: "سيتم الاتفاق على الموعد وطريقة الدفع" },
+              { title: "ابدأ الجلسة", desc: "لقاء مباشر عبر Zoom في الموعد المحدد" },
+            ].map((step, idx) => (
+              <div key={idx} className="flex flex-col items-center text-center group">
+                <div className="w-24 h-24 bg-white rounded-full border-4 border-[#FDFBF7] shadow-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 relative">
+                  <span className="text-3xl font-serif font-bold text-[#2A5B68]">
+                    {idx + 1}
+                  </span>
+                  {idx < 3 && (
+                    <ArrowDown className="md:hidden w-6 h-6 text-[#E6E2D3] absolute -bottom-10" />
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-[#3E2723] mb-2">{step.title}</h3>
+                <p className="text-sm text-muted-foreground px-2">{step.desc}</p>
               </div>
-              <h3 className="font-bold text-[#3E2723] mb-2">{item.title}</h3>
-              <p className="text-sm text-muted-foreground">{item.desc}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
     </div>

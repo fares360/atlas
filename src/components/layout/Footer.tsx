@@ -73,11 +73,11 @@ export default function Footer() {
 
   // الروابط المهمة
   const importantLinks = [
-    { name: "من نحن", href: "/about" },
-    { name: "سياسة الخصوصية", href: "/privacy" },
-    { name: "شروط الاستخدام", href: "/terms" },
-    { name: "الأسئلة الشائعة", href: "/faq" },
-    { name: "تواصل معنا", href: "/contact" },
+    { name: "من نحن", href: "/importantLinks/about" },
+    { name: "الأهداف", href: "/importantLinks/goals" },
+    { name: "سياسة الخصوصية", href: "/importantLinks/privacy" },
+    { name: "شروط الاستخدام", href: "/importantLinks/terms" },
+    { name: "الأسئلة الشائعة", href: "/importantLinks/faq" },
   ];
 
   return (

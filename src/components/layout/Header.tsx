@@ -1,9 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Menu, X, ShoppingBag, User, Search, BookOpen } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import {
+  Menu,
+  X,
+  ShoppingBag,
+  User as UserIcon,
+  Search,
+  LogOut,
+  ChevronDown,
+  LayoutDashboard, // ✅ تم استخدام الأيقونة هنا
+} from "lucide-react";
 import { useCart } from "@/components/providers/cart-provider";
+import { useAuth } from "@/components/providers/auth-provider"; 
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import SearchModal from "@/components/shared/search-modal";
@@ -11,15 +21,35 @@ import SearchModal from "@/components/shared/search-modal";
 const navigation = [
   { name: "الرئيسية", href: "/" },
   { name: "مكتبتي", href: "/library" },
+  { name: "أطلس", href: "/atlas" },
   { name: "الاستشارات", href: "/consultations" },
-  { name: "من نحن", href: "/about" },
+  { name: "المشكاة", href: "/mishkat" },
+  { name: "من نحن", href: "/importantLinks/about" },
 ];
 
 export default function Header() {
   const { itemsCount } = useCart();
+  const { user, signOut, isAdmin } = useAuth(); // ✅ استدعاء حالة الأدمن
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const pathname = usePathname();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // إغلاق القائمة عند النقر خارجها
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // الحصول على اسم المستخدم أو أول حرف من الايميل
+  const userName = user?.user_metadata?.full_name || "مستخدم";
+  const userInitial = user?.email ? user.email[0].toUpperCase() : "U";
 
   return (
     <>
@@ -27,15 +57,19 @@ export default function Header() {
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="bg-primary p-2 rounded-lg">
-                <BookOpen className="h-6 w-6 text-white" />
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-full shadow-sm flex items-center justify-center">
+                <img
+                  src="/images/logo-removebg-preview.png"
+                  alt="شعار الأكاديمية"
+                  className="w-full h-full object-contain rounded-full"
+                />
               </div>
               <span className="text-2xl font-bold font-serif text-primary tracking-wide hidden sm:block">
-                موسوعة الأسرة
+                أكاديمية مودة لعلوم الأسرة
               </span>
               <span className="text-xl font-bold font-serif text-primary tracking-wide sm:hidden">
-                الأطلس
+                أكاديمية مودة
               </span>
             </Link>
           </div>
@@ -60,17 +94,27 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-4">
-            {/* ✅ زر البحث (تم تعديله ليطابق السلة) */}
+            
+            {/* ✅ إضافة: زر الأدمن (يظهر فقط للأدمن) */}
+            {isAdmin && (
+              <Link
+                href="/admin/dashboard"
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-full text-xs font-bold border border-red-200 hover:bg-red-100 transition-all"
+                title="لوحة تحكم الإدارة"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>الإدارة</span>
+              </Link>
+            )}
+
             <button
               onClick={() => setIsSearchOpen(true)}
               className="text-muted-foreground hover:text-primary transition-colors group"
               aria-label="بحث"
             >
-              {/* تكبير الأيقونة قليلاً لتطابق السلة + إضافة تأثير التكبير */}
               <Search className="h-6 w-6 group-hover:scale-110 transition-transform" />
             </button>
 
-            {/* زر السلة */}
             <Link
               href="/checkout"
               className="text-muted-foreground hover:text-primary transition-colors relative group"
@@ -85,13 +129,79 @@ export default function Header() {
               </div>
             </Link>
 
-            <Link
-              href="/login"
-              className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors shadow-sm"
-            >
-              <User className="h-4 w-4" />
-              <span>تسجيل الدخول</span>
-            </Link>
+            {/* --- منطق المستخدم (Login vs User Menu) --- */}
+            {user ? (
+              // 1. حالة تسجيل الدخول: عرض القائمة
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#E6E2D3] hover:bg-[#F9F7F0] transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
+                    {userInitial}
+                  </div>
+                  <span className="text-sm font-medium text-[#3E2723] max-w-[100px] truncate">
+                    {userName}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </button>
+
+                {/* القائمة المنسدلة */}
+                {isUserMenuOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-[#E6E2D3] py-2 animate-in fade-in zoom-in-95 z-50">
+                    <div className="px-4 py-3 border-b border-[#F9F7F0]">
+                      <p className="text-sm font-bold text-[#3E2723]">
+                        {userName}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user.email}
+                      </p>
+                    </div>
+
+                    <Link
+                      href="/library"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#3E2723] hover:bg-[#F9F7F0] transition-colors"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <UserIcon className="w-4 h-4" />
+                      <span>الملف الشخصي / مكتبتي</span>
+                    </Link>
+
+                    {/* ✅ رابط الأدمن داخل القائمة المنسدلة أيضاً (اختياري) */}
+                    {isAdmin && (
+                       <Link
+                       href="/admin/dashboard"
+                       className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                       onClick={() => setIsUserMenuOpen(false)}
+                     >
+                       <LayoutDashboard className="w-4 h-4" />
+                       <span>لوحة التحكم</span>
+                     </Link>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        signOut();
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-[#F9F7F0] mt-1"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>تسجيل الخروج</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              // 2. حالة عدم التسجيل: زر الدخول
+              <Link
+                href="/auth/login"
+                className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                <UserIcon className="h-4 w-4" />
+                <span>تسجيل الدخول</span>
+              </Link>
+            )}
 
             {/* Mobile Menu Toggle */}
             <button
@@ -106,6 +216,19 @@ export default function Header() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t bg-background p-4 space-y-4 shadow-lg animate-in slide-in-from-top-5">
+            
+            {/* ✅ إضافة: رابط الأدمن في قائمة الموبايل */}
+            {isAdmin && (
+              <Link
+                href="/admin/dashboard"
+                className="flex items-center gap-2 text-base font-bold text-red-600 bg-red-50 p-3 rounded-md border border-red-100 mb-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <LayoutDashboard className="w-5 h-5" />
+                <span>لوحة التحكم (Admin)</span>
+              </Link>
+            )}
+
             {navigation.map((item) => (
               <Link
                 key={item.name}
@@ -116,15 +239,44 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
+
             <div className="pt-4 border-t">
-              <Link
-                href="/login"
-                className="flex items-center justify-center gap-2 w-full px-4 py-2 text-white bg-primary rounded-md"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <User className="h-4 w-4" />
-                <span>تسجيل الدخول</span>
-              </Link>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3 p-2 mb-2 bg-[#F9F7F0] rounded-lg">
+                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
+                      {userInitial}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-[#3E2723]">
+                        {userName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 text-red-600 border border-red-200 rounded-md hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>تسجيل الخروج</span>
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="auth/login"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 text-white bg-primary rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <UserIcon className="h-4 w-4" />
+                  <span>تسجيل الدخول</span>
+                </Link>
+              )}
             </div>
           </div>
         )}

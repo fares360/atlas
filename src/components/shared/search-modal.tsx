@@ -9,21 +9,77 @@ import {
   ArrowRight,
   Clock,
   ChevronRight,
+  GraduationCap,
+  Users,
+  Mic2,
+  FileText,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-// بيانات وهمية للبحث
+// ✅ 1. تحديث بيانات البحث لتعكس هيكل الموقع الحقيقي
 const SEARCH_ITEMS = [
+  // --- الأطلس ---
   {
-    id: 1,
+    id: "atlas-1",
     title: "المجلد الأول: مقاصد الفكر الإرشادي",
-    type: "كتاب",
-    href: "/books/1",
+    type: "الأطلس التربوي",
+    href: "/atlas/part/1",
+    icon: BookOpen,
   },
-  { id: 2, title: "القارة الزواجية", type: "كتاب", href: "/books/2" },
-  { id: 3, title: "استشارة زوجية خاصة", type: "خدمة", href: "/consultations" },
-  { id: 4, title: "إرشاد الموهوبين", type: "كتاب", href: "/books/5" },
-  { id: 5, title: "كيف أتعامل مع المراهق؟", type: "مقال", href: "/about" },
+  
+  // --- البرامج الرئيسية ---
+  {
+    id: "prog-specialist",
+    title: "برنامج تأهيل المستشارين الأسريين",
+    type: "دبلوم متخصص",
+    href: "/programs/specialist-advisors",
+    icon: GraduationCap,
+  },
+  {
+    id: "prog-family",
+    title: "برنامج متكامل لأفراد الأسرة",
+    type: "برنامج عام",
+    href: "/programs/family-integrated",
+    icon: Users,
+  },
+  {
+    id: "prog-sessions",
+    title: "جلسات فردية ومحاضرات عامة",
+    type: "استشارات",
+    href: "/programs/sessions",
+    icon: Mic2,
+  },
+
+  // --- أمثلة للرخص (لجعل البحث ذكياً) ---
+  {
+    id: "license-parenting",
+    title: "رخصة التربية الهادفة",
+    type: "رخصة تربوية",
+    href: "/programs/family-integrated/purposeful-parenting",
+    icon: FileText,
+  },
+  {
+    id: "license-marriage",
+    title: "رخصة المقبلين على الزواج",
+    type: "رخصة زواجية",
+    href: "/programs/family-integrated/pre-marriage",
+    icon: FileText,
+  },
+
+  // --- خدمات أخرى ---
+  {
+    id: "consultation",
+    title: "حجز استشارة خاصة",
+    type: "خدمة",
+    href: "/consultations",
+    icon: Users,
+  },
+  {
+    id: "my-library",
+    title: "مكتبتي (الكتب المشتراة)",
+    type: "حسابي",
+    href: "/my-library",
+    icon: BookOpen,
+  },
 ];
 
 interface SearchModalProps {
@@ -35,6 +91,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(SEARCH_ITEMS);
 
+  // منطق الفلترة
   useEffect(() => {
     if (query.trim() === "") {
       setResults([]);
@@ -46,6 +103,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     }
   }, [query]);
 
+  // إغلاق عند ضغط ESC
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -69,13 +127,14 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
       {/* صندوق البحث */}
       <div className="relative w-full max-w-2xl bg-[#FDFBF7] rounded-3xl shadow-2xl overflow-hidden border border-[#D4AF37]/30 animate-in zoom-in-95 slide-in-from-top-5 duration-300">
-        {/* الحقل العلوي (بدون خلفية بيضاء صارخة) */}
+        
+        {/* الحقل العلوي */}
         <div className="flex items-center gap-4 p-5 border-b border-[#E6E2D3] bg-[#FDFBF7]">
           <Search className="w-6 h-6 text-[#2A5B68]" />
           <input
             type="text"
             className="flex-1 text-xl bg-transparent outline-none text-[#3E2723] placeholder:text-muted-foreground/40 font-sans font-medium"
-            placeholder="عَم تبحث؟ (كتاب، موضوع...)"
+            placeholder="عَم تبحث؟ (كتاب، رخصة، استشارة...)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
@@ -90,19 +149,21 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
         {/* منطقة النتائج */}
         <div className="max-h-[50vh] overflow-y-auto custom-scrollbar p-3">
+          
           {/* الحالة 1: اقتراحات سريعة (عندما يكون الحقل فارغاً) */}
           {query === "" && (
             <div className="p-2">
               <h3 className="text-xs font-bold text-[#D4AF37] mb-4 flex items-center gap-2 px-2">
                 <Clock className="w-3.5 h-3.5" />
-                عمليات بحث شائعة
+                الأكثر بحثاً
               </h3>
               <div className="flex flex-wrap gap-2 px-2">
                 {[
-                  "التربية الإيجابية",
-                  "المراهقة",
-                  "الخلافات الزوجية",
-                  "ابن سينا",
+                  "الأطلس التربوي",
+                  "المقبلين على الزواج",
+                  "تربية الموهوبين",
+                  "استشارة خاصة",
+                  "المشكاة",
                 ].map((tag) => (
                   <button
                     key={tag}
@@ -116,7 +177,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             </div>
           )}
 
-          {/* الحالة 2: عرض النتائج (القائمة التفاعلية) */}
+          {/* الحالة 2: عرض النتائج */}
           {query !== "" && results.length > 0 && (
             <div className="space-y-1">
               {results.map((item) => (
@@ -126,9 +187,9 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   onClick={onClose}
                   className="flex items-center gap-4 p-4 rounded-xl transition-all duration-200 group hover:bg-[#2A5B68]/5 border border-transparent hover:border-[#2A5B68]/10"
                 >
-                  {/* الأيقونة: تتغير ألوانها عند التمرير */}
+                  {/* الأيقونة الديناميكية */}
                   <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white border border-[#E6E2D3] group-hover:border-[#2A5B68] group-hover:scale-110 transition-all duration-300">
-                    <BookOpen className="w-5 h-5 text-[#3E2723] group-hover:text-[#2A5B68]" />
+                    <item.icon className="w-5 h-5 text-[#3E2723] group-hover:text-[#2A5B68]" />
                   </div>
 
                   {/* النصوص */}
@@ -162,13 +223,13 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
         {/* الفوتر */}
         <div className="bg-[#F9F7F0] px-6 py-3 border-t border-[#E6E2D3] flex justify-between items-center text-[11px] text-muted-foreground font-medium">
           <div className="flex gap-4">
-            <span>
+            <span className="hidden sm:inline">
               للتنقل{" "}
               <kbd className="font-sans bg-white px-1 rounded border border-[#D6D3C9]">
                 TAB
               </kbd>
             </span>
-            <span>
+            <span className="hidden sm:inline">
               للاختيار{" "}
               <kbd className="font-sans bg-white px-1 rounded border border-[#D6D3C9]">
                 ENTER
